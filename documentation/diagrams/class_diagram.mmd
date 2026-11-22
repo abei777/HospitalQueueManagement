@@ -1,0 +1,147 @@
+classDiagram
+    direction LR
+
+    class PriorityLevel {
+        <<enumeration>>
+        Emergency = 1
+        Urgent = 2
+        Normal = 3
+    }
+    class PatientStatus {
+        <<enumeration>>
+        Waiting
+        Served
+        Cancelled
+    }
+    class CancelResult {
+        <<enumeration>>
+        Cancelled
+        NotFound
+        AlreadyServed
+        AlreadyCancelled
+    }
+
+    class Patient {
+        -int id_
+        -string fullName_
+        -int age_
+        -string gender_
+        -string medicalCondition_
+        -PriorityLevel priority_
+        -long arrivalSequence_
+        +MAX_AGE : int = 120
+        +Patient(id, fullName, age, gender, medicalCondition, priority, arrivalSequence)
+        +getId() int
+        +getFullName() string
+        +getAge() int
+        +getGender() string
+        +getMedicalCondition() string
+        +getPriority() PriorityLevel
+        +getArrivalSequence() long
+    }
+
+    class PatientRecord {
+        <<struct>>
+        +Patient patient
+        +PatientStatus status
+    }
+
+    class QueueStatistics {
+        <<struct>>
+        +totalRegistered
+        +waiting
+        +served
+        +cancelled
+        +waitingEmergency
+        +waitingUrgent
+        +waitingNormal
+        +isConsistent() bool
+    }
+
+    class PatientComparator {
+        <<private nested struct>>
+        +operator()(a, b) bool
+    }
+
+    class HospitalQueue {
+        -priority_queue~Patient~ waitingQueue_
+        -map~int, PatientRecord~ patientRecords_
+        -size_t waitingCount_
+        -size_t servedCount_
+        -size_t cancelledCount_
+        -int nextPatientId_
+        -long nextArrivalSequence_
+        -discardCancelledFromTop() void
+        +registerPatient(name, age, gender, condition, priority) Patient
+        +insertPatient(patient) void
+        +peekNext() Patient
+        +popNext() Patient
+        +cancelPatient(id) CancelResult
+        +findPatient(id) optional~PatientRecord~
+        +getWaitingPatients() vector~Patient~
+        +isEmpty() bool
+        +size() size_t
+        +totalRegistered() size_t
+        +totalServed() size_t
+        +totalCancelled() size_t
+        +getRegisteredPatients() vector~Patient~
+        +getStatistics() QueueStatistics
+        +getAllRecords() vector~PatientRecord~
+        +loadRecords(records) void
+    }
+
+    class PatientStorage {
+        -path filePath_
+        +FORMAT_NAME
+        +FORMAT_VERSION = 1
+        +PatientStorage(filePath)
+        +save(records) SaveResult
+        +load() LoadResult
+        +createBackupCopy() SaveResult
+        +getFilePath() path
+    }
+
+    class HospitalManagementSystem {
+        -HospitalQueue hospitalQueue_
+        -string dataFilePath_
+        -string staffPin_
+        -bool dataFileUnreadable_
+        -bool unsavedChanges_
+        -authorizeStaff(in, out) bool
+        -autoSave(out) void
+        -saveRecordsInteractive(in, out) void
+        -confirmExit(in, out) bool
+        -finishSession(in, out, canAsk) bool
+        +run(in, out) int
+        +displayWelcomeScreen(out) void
+        +displayMainMenu(out) void
+        +registerPatientInteractive(in, out) bool
+        +serveNextPatient(out) bool
+        +displayWaitingPatients(out) void
+        +searchPatient(in, out) bool
+        +cancelPatientAuthorized(in, out) bool
+        +displayStatistics(out) void
+        +saveRecords(out, overwrite) bool
+        +loadSavedRecords(out) bool
+        +hasUnsavedChanges() bool
+        +isSavingBlocked() bool
+        +getQueue() HospitalQueue
+    }
+
+    class main {
+        <<function>>
+        main() int
+    }
+
+    Patient --> PriorityLevel : has a
+    PatientRecord *-- Patient : contains
+    PatientRecord --> PatientStatus : has a
+    HospitalQueue *-- PatientRecord : registry (map by ID)
+    HospitalQueue o-- Patient : heap holds copies
+    HospitalQueue *-- PatientComparator : orders the heap
+    HospitalQueue ..> QueueStatistics : returns
+    HospitalQueue ..> CancelResult : returns
+    HospitalManagementSystem *-- HospitalQueue : owns
+    HospitalManagementSystem ..> PatientStorage : creates per save/load
+    PatientStorage ..> PatientRecord : reads / writes
+    main ..> HospitalManagementSystem : creates and runs

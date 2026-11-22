@@ -1,0 +1,47 @@
+flowchart TD
+    A([Start: main creates HospitalManagementSystem]) --> B[displayWelcomeScreen<br/>educational-simulation notice]
+    B --> C[loadSavedRecords from data/patients.txt]
+    C --> C1{Load result}
+    C1 -- File missing or empty --> C2[Start with empty registry]
+    C1 -- Loaded OK --> C3[Replace registry; only Waiting patients enter the heap]
+    C1 -- Invalid or unreadable --> C4[Keep file untouched<br/>block saving: dataFileUnreadable_ = true]
+    C2 --> D
+    C3 --> D
+    C4 --> D
+    D[displayMainMenu and read a line] --> E{Input ended - EOF?}
+    E -- yes --> Z[End-of-input shutdown:<br/>finishSession canAsk = false]
+    E -- no --> F{Valid choice 1 to 8?}
+    F -- no --> F1[Print 'Invalid choice'] --> D
+    F -- yes --> G{Choice}
+    G -- 1 --> H1[Register patient] --> S{State changed?}
+    G -- 2 --> H2[Display waiting patients] --> D
+    G -- 3 --> H3[Serve next patient] --> S
+    G -- 4 --> H4[Search patient by ID] --> D
+    G -- 5 --> H5[Staff PIN, ID, yes/no confirmation, cancel] --> S
+    G -- 6 --> H6[Display statistics] --> D
+    G -- 7 --> H7[saveRecordsInteractive<br/>offer backup + replace if file damaged] --> D
+    G -- 8 --> X[confirmExit: Are you sure? yes/no]
+    S -- yes --> AS[autoSave: saveRecords]
+    S -- no --> D
+    AS --> AS1{Saved?}
+    AS1 -- yes --> D
+    AS1 -- no --> AS2[Warn: change held in memory only<br/>unsavedChanges_ stays true] --> D
+    X --> X1{Answer}
+    X1 -- no --> D
+    X1 -- EOF --> D
+    X1 -- yes --> FS[finishSession canAsk = true]
+    FS --> FS1{Unsaved changes?}
+    FS1 -- no --> OUT0([Goodbye, exit code 0])
+    FS1 -- yes --> FS2[Try saveRecords]
+    FS2 --> FS3{Saved?}
+    FS3 -- yes --> OUT0
+    FS3 -- no --> FS4[Ask: Exit anyway and lose the unsaved changes?]
+    FS4 -- yes --> OUT2([Goodbye, exit code 2])
+    FS4 -- no --> D
+    FS4 -- EOF: not consent --> D
+    Z --> Z1{Unsaved changes?}
+    Z1 -- no --> OUT0
+    Z1 -- yes --> Z2[Try saveRecords]
+    Z2 --> Z3{Saved?}
+    Z3 -- yes --> OUT0
+    Z3 -- no --> OUT2

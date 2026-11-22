@@ -1,0 +1,12 @@
+flowchart TD
+    l1{File exists?} -- no --> l2[FileNotFound]
+    l1 -- yes --> l3{Regular file, readable?}
+    l3 -- no --> l4[IoError]
+    l3 -- yes --> l5{Size 0?}
+    l5 -- yes --> l6[EmptyFile]
+    l5 -- no --> l7[Check header name and version]
+    l7 --> l8[Parse each line: 8 fields, escapes, status,<br/>patient constructor validation,<br/>no duplicate ID or arrival sequence]
+    l8 --> l9[Check END count equals records found]
+    l9 --> l10{Everything valid?}
+    l10 -- no --> l11[InvalidData: nothing accepted]
+    l10 -- yes --> l12[Loaded: return all records]

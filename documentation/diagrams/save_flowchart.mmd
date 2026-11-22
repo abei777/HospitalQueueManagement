@@ -1,0 +1,8 @@
+flowchart TD
+    s1[Create parent folder if needed] --> s2[Write header, one line per record, END footer<br/>to file.tmp]
+    s2 --> s3{Write OK?}
+    s3 -- no --> s4[Delete .tmp, report failure<br/>real file untouched]
+    s3 -- yes --> s5[rename .tmp over real file]
+    s5 --> s6{Rename OK?}
+    s6 -- no --> s4
+    s6 -- yes --> s7[Report: Saved N patient records]
