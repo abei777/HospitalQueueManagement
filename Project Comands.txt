@@ -1,0 +1,15 @@
+
+COMMANDS TO RUN THE HQSMIP PROGRAM WITH C++
+
+1. Run the tests
+
+(a) g++ -std=c++17 -I. -Itests tests/test_priority_queue.cpp Patient.cpp HospitalQueue.cpp PatientStorage.cpp HospitalManagementSystem.cpp -o test_pq.exe
+.\test_pq.exe
+
+2. Build and run the program
+
+(a) g++ -std=c++17 -Wall -Wextra -Wpedantic -O2 main.cpp Patient.cpp HospitalQueue.cpp PatientStorage.cpp HospitalManagementSystem.cpp -o hospital_queue
+./hospital_queue
+
+3. Other way to run it
+Press Ctrl+Shift+B to build, then F5 to debug
